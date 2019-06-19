@@ -1,10 +1,9 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "fault_injection.h"
 #include "counted.h"
-#include "vector.hpp"
 
-typedef vector<counted> container;
-typedef vector<int> container_int;
+typedef std::vector<counted> container;
+typedef std::vector<int> container_int;
 
 TEST(correctness, default_ctor)
 {
@@ -517,7 +516,7 @@ TEST(correctness, const_front_back_ref)
         c.push_back(1);
         c.push_back(2);
         c.push_back(3);
-
+        
         container const& cc = c;
         EXPECT_EQ(&c.front(), &cc[0]);
         EXPECT_EQ(&c.back(), &cc[2]);
@@ -531,7 +530,7 @@ TEST(correctness, data_empty)
         counted::no_new_instances_guard g;
         container c;
         c.data();
-
+        
         container const& cc = c;
         cc.data();
     });
@@ -545,7 +544,7 @@ TEST(correctness, data_small)
         container c;
         c.push_back(42);
         EXPECT_EQ(&c[0], c.data());
-
+        
         container const& cc = c;
         EXPECT_EQ(&cc[0], cc.data());
     });
@@ -562,7 +561,7 @@ TEST(correctness, data)
         c.push_back(3);
         c.push_back(4);
         EXPECT_EQ(&c[0], c.data());
-
+        
         container const& cc = c;
         EXPECT_EQ(&cc[0], cc.data());
     });
