@@ -180,3 +180,21 @@ TEST(vector, push_back_itself) {
         EXPECT_EQ(v[i].val, 42);
     }
 }
+
+TEST(vector, insert) {
+    vector<B> v;
+    auto it1 = v.insert(v.begin(), B(42));
+    EXPECT_EQ(it1->val, 42);
+    
+    auto it2 = v.insert(v.end(), B(43));
+    EXPECT_EQ(it2->val, 43);
+    
+    auto it3 = v.insert(v.begin(), B(41));
+    EXPECT_EQ(it3->val, 41);
+    
+    EXPECT_EQ(v.size(), 3);
+    EXPECT_EQ(v.end() - v.begin(), v.size());
+    for (auto it = v.begin(); it != v.end(); ++it) {
+        EXPECT_EQ(it->val, 41 + (it - v.begin()));
+    }
+}

@@ -123,7 +123,7 @@ struct vector_const_iterator{
 
     vector_const_iterator(const vector_const_iterator& that) = default;
 
-    explicit vector_const_iterator(const vector_iterator<T>& that) : ptr_(that.ptr_) {};
+    vector_const_iterator(const vector_iterator<T>& that) : ptr_(that.ptr_) {};
 
     vector_const_iterator& operator=(const vector_const_iterator& that) = default;
 

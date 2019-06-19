@@ -357,6 +357,96 @@ struct vector {
         return const_reverse_iterator(cbegin());
     }
 
+    iterator insert(const_iterator pos, const T& val) {
+        detach();
+        if (pos == end()) {
+            push_back(val);
+            return end() - 1;
+        } else {
+            switch (get_status()) {
+                case SMALL: {
+                    asp<T> tmp(val);
+                    new (&tmp[1]) T(std::get<1>(src_));
+                    ++tmp.get_size();
+
+                    src_.template emplace<0>(tmp);
+                    return begin();
+                }
+                case ALLOCATED: {
+                    size_t size = this->size();
+                    size_t cap = capacity();
+                    if (size == cap) {
+                        cap *= 2;
+                    }
+                    asp<T> tmp(0, cap, nullptr);
+
+                    size_t i = 0;
+                    auto it = cbegin();
+                    for (; it != pos; ++it, ++i) {
+                        new (&tmp[i]) T(*it);
+                        ++tmp.get_size();
+                    }
+
+                    iterator ret(tmp.get_data() + i);
+                    new (&tmp[i]) T(val);
+                    ++tmp.get_size();
+                    ++i;
+
+                    for (; it != cend(); ++it, ++i) {
+                        new (&tmp[i]) T(*it);
+                        ++tmp.get_size();
+                    }
+
+                    std::get<0>(src_) = tmp;
+                    return ret;
+                }
+                default: {
+                    throw std::exception();
+                }
+            }
+        }
+    }
+
+    iterator erase(const_iterator pos) {
+        return erase(pos, pos + 1);
+    }
+
+    iterator erase(const_iterator first, const_iterator last) {
+        detach();
+        if (first == last && first + 1 == end()) {
+            pop_back();
+            return end();
+        } else {
+            switch (get_status()) {
+                case ALLOCATED: {
+                    size_t cap = capacity();
+                    asp<T> tmp(0, cap, nullptr);
+
+                    size_t i = 0;
+                    auto it = cbegin();
+                    for (; it != first; ++it, ++i) {
+                        new (&tmp[i]) T(*it);
+                        ++tmp.get_size();
+                    }
+
+                    iterator ret(tmp.get_data() + i);
+                    for (; it != last; ++it);
+
+                    for (; it != cend(); ++it, ++i) {
+                        new (&tmp[i]) T(*it);
+                        ++tmp.get_size();
+                    }
+
+                    std::get<0>(src_) = tmp;
+                    return ret;
+                }
+                default: {
+                    throw std::exception();
+                }
+            }
+        }
+    }
+
 private:
     enum status {
         EMPTY,
