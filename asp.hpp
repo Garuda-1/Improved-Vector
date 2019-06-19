@@ -2,6 +2,7 @@
 #define EXAM_VECTOR_ASP_HPP
 
 #include <cstdio>
+#include <exception>
 
 template<typename T>
 struct asp {
@@ -9,6 +10,10 @@ struct asp {
 
     explicit asp(size_t size = 0, size_t cap = 0, T* data = nullptr) : data_(nullptr) {
         construct_chunk(size, cap, data);
+    }
+
+    explicit asp(const T& data) {
+        construct_chunk(data);
     }
 
     asp(const asp<T>& that) noexcept : data_(nullptr) {
@@ -25,6 +30,7 @@ struct asp {
         }
         detach();
         attach(that.data_);
+        return *this;
     }
 
     void reset(size_t size = 0, size_t cap = 0, T* data = nullptr) {
@@ -85,6 +91,9 @@ private:
         if (data_ != nullptr) {
             --get_ref();
             if (get_ref() == 0) {
+                for (size_t i = 0; i < get_size(); ++i) {
+                    get_data()[i].~T();
+                }
                 operator delete[] (data_);
             }
         }
@@ -109,9 +118,32 @@ private:
             get_cap() = cap;
             if (data != nullptr) {
                 for (size_t i = 0; i < size; ++i) {
-                    new (get_data() + i) T(data[i]);
+                    try {
+                        new (get_data() + i) T(*(data + i));
+                    } catch (...) {
+                        for (size_t j = 0; j < i; j++) {
+                            (get_data() + j)->~T();
+                        }
+                        operator delete[](data_);
+                        data_ = nullptr;
+                        throw std::exception();
+                    }
                 }
             }
+        }
+    }
+
+    void construct_chunk(const T& data) {
+        data_ = static_cast<char*>(operator new[] (3 * sizeof(size_t) + 2 * sizeof(T)));
+        get_ref() = 1;
+        get_size() = 1;
+        get_cap() = 2;
+        try {
+            new (get_data()) T(data);
+        } catch (...) {
+            operator delete[](data_);
+            data_ = nullptr;
+            throw std::exception();
         }
     }
 };

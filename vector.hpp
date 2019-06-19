@@ -24,6 +24,7 @@ struct vector {
     // TODO: InputIterator ctor
 
     T& operator[](size_t i) {
+        detach();
         if (get_status() == SMALL) {
             return std::get<1>(src_);
         } else {
@@ -31,7 +32,7 @@ struct vector {
         }
     }
 
-    const T operator[](size_t i) const {
+    const T& operator[](size_t i) const {
         if (get_status() == SMALL) {
             return std::get<1>(src_);
         } else {
@@ -40,6 +41,7 @@ struct vector {
     }
 
     T& front() {
+        detach();
         if (get_status() == SMALL) {
             return std::get<1>(src_);
         } else {
@@ -56,6 +58,7 @@ struct vector {
     }
 
     T& back() {
+        detach();
         if (get_status() == SMALL) {
             return std::get<1>(src_);
         } else {
@@ -74,32 +77,45 @@ struct vector {
     }
 
     void push_back(const T& value) {
+        detach();
         switch (get_status()) {
             case EMPTY: {
-                src_.template emplace<1>(value);
+                try {
+                    src_.template emplace<1>(value);
+                } catch (...) {
+                    src_.template emplace<0>();
+                    throw std::exception();
+                }
                 return;
             }
             case SMALL: {
-                allocate();     // Exception alert
-                size_t& size = std::get<0>(src_).get_size();
-                new (&std::get<0>(src_)[size]) T(value);    // Exception alert
-                ++size;
+                asp<T> tmp(std::get<1>(src_));
+
+                new (&tmp[1]) T(value);
+                ++tmp.get_size();
+
+                src_.template emplace<0>(tmp);
                 return;
             }
             case ALLOCATED: {
                 size_t size = std::get<0>(src_).get_size();
                 size_t cap = std::get<0>(src_).get_cap();
                 if (size == cap) {
-                    reallocate(cap * 2);
+                    asp<T> tmp(std::get<0>(src_).get_size(), cap * 2, std::get<0>(src_).get_data());
+                    new (&tmp[size]) T(value);
+                    ++tmp.get_size();
+                    src_.template emplace<0>(tmp);
+                } else {
+                    new (&std::get<0>(src_)[size]) T(value);
+                    ++std::get<0>(src_).get_size();
                 }
-                new (&std::get<0>(src_)[size]) T(value);
-                ++std::get<0>(src_).get_size();
                 return;
             }
         }
     }
 
     void pop_back() {
+        detach();
         switch (get_status()) {
             case EMPTY: {
                 return;
@@ -117,6 +133,7 @@ struct vector {
     }
 
     T* data() {
+        detach();
         if (get_status() == SMALL) {
             return &(std::get<1>(src_));
         } else {
@@ -148,9 +165,11 @@ struct vector {
                 return std::get<0>(src_).get_size();
             }
         }
+        return 0;
     }
 
     void reserve(size_t cap) {
+        detach();
         if (cap > 1) {
             if (get_status() == ALLOCATED) {
                 reallocate(cap);
@@ -173,6 +192,7 @@ struct vector {
     }
 
     void shrink_to_fit() {
+        detach();
         if (get_status() == ALLOCATED) {
             size_t size = std::get<0>(src_).get_size();
             reallocate(size);
@@ -180,6 +200,7 @@ struct vector {
     }
 
     void resize(size_t new_size, const T& val = T()) {
+        detach();
         if (size() < new_size) {
             if (new_size == 1 && get_status() == EMPTY) {
                 src_.template emplace<T>(val);
@@ -216,11 +237,15 @@ struct vector {
                     src_.template emplace<0>();
                     return;
                 }
+                case EMPTY: {
+                    return;
+                }
             }
         }
     }
 
     void clear() {
+        detach();
         switch (get_status()) {
             case SMALL: {
                 src_.template emplace<0>();
@@ -233,6 +258,7 @@ struct vector {
     }
 
     void swap(vector<T>& that) {
+        detach();
         if (get_status() == EMPTY) {
             if (that.get_status() == EMPTY) {
                 return;
@@ -280,10 +306,12 @@ struct vector {
     }
 
     iterator begin() {
+        detach();
         return iterator(data());
     }
 
     iterator end() {
+        detach();
         return iterator(data() + size());
     }
 
@@ -292,7 +320,7 @@ struct vector {
     }
 
     const_iterator end() const {
-        return const_iterator(data());
+        return const_iterator(data() + size());
     }
 
     const_iterator cbegin() const {
@@ -304,10 +332,12 @@ struct vector {
     }
 
     reverse_iterator rbegin() {
+        detach();
         return reverse_iterator(end());
     }
 
     reverse_iterator rend() {
+        detach();
         return reverse_iterator(begin());
     }
 
@@ -344,14 +374,8 @@ private:
 
     void allocate(size_t cap = 2) {
         if (get_status() == SMALL) {
-//            T tmp = std::get<1>(src_);
-
-            asp<T> tmp(1, cap, &std::get<1>(src_));
+            asp<T> tmp(std::get<1>(src_));
             src_.template emplace<0>(tmp);
-
-//            src_.template emplace<0>(1, cap);
-//            std::get<0>(src_).get_size() = 1;
-//            new (&std::get<0>(src_)[0]) T(tmp);
         } else {
             asp<T> tmp(0, cap);
             src_.template emplace<0>(tmp);
@@ -364,16 +388,18 @@ private:
     }
 
     void detach() {
-        if (get_status() == ALLOCATED) {
-//            asp<T> tmp(size(), capacity(), std::get<0>(src_).get_data());
-
+        if (get_status() == ALLOCATED && !std::get<0>(src_).unique()) {
+            asp<T> tmp(size(), capacity(), std::get<0>(src_).get_data());
+            std::get<0>(src_) = tmp;
         }
     }
 };
 
 template<typename T>
 void swap(vector<T>& a, vector<T>& b) {
-    a.swap(b);
+    if (&a != &b) {
+        a.swap(b);
+    }
 }
 
 #endif

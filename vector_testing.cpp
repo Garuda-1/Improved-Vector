@@ -268,7 +268,7 @@ TEST(correctness, const_subscript)
 //        EXPECT_EQ(42, c[5]);
 //    });
 //}
-//
+
 //TEST(correctness, erase)
 //{
 //    faulty_run([]
@@ -474,21 +474,21 @@ TEST(correctness, front_back)
     });
 }
 
-//TEST(correctness, const_front_back)
-//{
-//    faulty_run([]
-//    {
-//        counted::no_new_instances_guard g;
-//        container c;
-//        c.push_back(1);
-//        c.push_back(2);
-//        c.push_back(3);
-//
-//        container const& cc = c;
-//        EXPECT_EQ(1, cc.front());
-//        EXPECT_EQ(3, cc.back());
-//    });
-//}
+TEST(correctness, const_front_back)
+{
+    faulty_run([]
+    {
+        counted::no_new_instances_guard g;
+        container c;
+        c.push_back(1);
+        c.push_back(2);
+        c.push_back(3);
+
+        container const& cc = c;
+        EXPECT_EQ(1, cc.front());
+        EXPECT_EQ(3, cc.back());
+    });
+}
 
 TEST(correctness, front_back_ref)
 {
@@ -508,65 +508,65 @@ TEST(correctness, front_back_ref)
     });
 }
 
-//TEST(correctness, const_front_back_ref)
-//{
-//    faulty_run([]
-//    {
-//        counted::no_new_instances_guard g;
-//        container c;
-//        c.push_back(1);
-//        c.push_back(2);
-//        c.push_back(3);
-//
-//        container const& cc = c;
-//        EXPECT_EQ(&c.front(), &cc[0]);
-//        EXPECT_EQ(&c.back(), &cc[2]);
-//    });
-//}
-//
-//TEST(correctness, data_empty)
-//{
-//    faulty_run([]
-//    {
-//        counted::no_new_instances_guard g;
-//        container c;
-//        c.data();
-//
-//        container const& cc = c;
-//        cc.data();
-//    });
-//}
+TEST(correctness, const_front_back_ref)
+{
+    faulty_run([]
+    {
+        counted::no_new_instances_guard g;
+        container c;
+        c.push_back(1);
+        c.push_back(2);
+        c.push_back(3);
 
-//TEST(correctness, data_small)
-//{
-//    faulty_run([]
-//    {
-//        counted::no_new_instances_guard g;
-//        container c;
-//        c.push_back(42);
-//        EXPECT_EQ(&c[0], c.data());
-//
-//        container const& cc = c;
-//        EXPECT_EQ(&cc[0], cc.data());
-//    });
-//}
-//
-//TEST(correctness, data)
-//{
-//    faulty_run([]
-//    {
-//        counted::no_new_instances_guard g;
-//        container c;
-//        c.push_back(1);
-//        c.push_back(2);
-//        c.push_back(3);
-//        c.push_back(4);
-//        EXPECT_EQ(&c[0], c.data());
-//
-//        container const& cc = c;
-//        EXPECT_EQ(&cc[0], cc.data());
-//    });
-//}
+        container const& cc = c;
+        EXPECT_EQ(&c.front(), &cc[0]);
+        EXPECT_EQ(&c.back(), &cc[2]);
+    });
+}
+
+TEST(correctness, data_empty)
+{
+    faulty_run([]
+    {
+        counted::no_new_instances_guard g;
+        container c;
+        c.data();
+
+        container const& cc = c;
+        cc.data();
+    });
+}
+
+TEST(correctness, data_small)
+{
+    faulty_run([]
+    {
+        counted::no_new_instances_guard g;
+        container c;
+        c.push_back(42);
+        EXPECT_EQ(&c[0], c.data());
+
+        container const& cc = c;
+        EXPECT_EQ(&cc[0], cc.data());
+    });
+}
+
+TEST(correctness, data)
+{
+    faulty_run([]
+    {
+        counted::no_new_instances_guard g;
+        container c;
+        c.push_back(1);
+        c.push_back(2);
+        c.push_back(3);
+        c.push_back(4);
+        EXPECT_EQ(&c[0], c.data());
+
+        container const& cc = c;
+        EXPECT_EQ(&cc[0], cc.data());
+    });
+}
 
 TEST(correctness, push_back_element_of_itself)
 {
@@ -793,7 +793,7 @@ TEST(correctness, const_reverse_iterators)
         EXPECT_EQ(cc.rend(), i);
     });
 }
-//
+
 //TEST(correctness, comparison_empty_empty)
 //{
 //    faulty_run([]

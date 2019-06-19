@@ -111,27 +111,72 @@ TEST(vector, modifiers) {
 }
 
 struct B {
-    bool val;
+    int val;
 
-    B(bool val) : val(val) {};
+    B(int val) : val(val) {};
 
-    B(const B&) {
-        if (val) {
+    B(const B& that) : val(that.val) {
+        if (val == 666) {
             throw std::exception();
         }
     }
 };
 
-TEST(vector, wew) {
+TEST(vector, vector_ctor_failure_push_back) {
     vector<B> v;
-    B cool1(false);
-    B cool2(false);
-    B badboy(true);
-    B cool3(false);
+    B cool1(1);
+    B cool2(2);
+    B badboy(666);
+    B cool3(3);
+    EXPECT_ANY_THROW(v.push_back(badboy));
+    EXPECT_EQ(v.size(), 0);
     EXPECT_NO_THROW(v.push_back(cool1));
+    EXPECT_EQ(v.size(), 1);
+    EXPECT_EQ(v[0].val, 1);
+    EXPECT_ANY_THROW(v.push_back(badboy));
+    EXPECT_EQ(v.size(), 1);
+    EXPECT_EQ(v[0].val, 1);
     EXPECT_NO_THROW(v.push_back(cool2));
+    EXPECT_EQ(v.size(), 2);
+    EXPECT_EQ(v[0].val, 1);
+    EXPECT_EQ(v[1].val, 2);
     EXPECT_ANY_THROW(v.push_back(badboy));
     EXPECT_EQ(v.size(), 2);
+    EXPECT_EQ(v[0].val, 1);
+    EXPECT_EQ(v[1].val, 2);
     EXPECT_NO_THROW(v.push_back(cool3));
     EXPECT_EQ(v.size(), 3);
+    EXPECT_EQ(v[0].val, 1);
+    EXPECT_EQ(v[1].val, 2);
+    EXPECT_EQ(v[2].val, 3);
+}
+
+TEST(vector, polygon) {
+    vector<B> v;
+    v.push_back(B(1));
+    v.push_back(B(2));
+    EXPECT_ANY_THROW(v.push_back(B(666)));
+    EXPECT_EQ(v.size(), 2);
+}
+
+TEST(vector, detach) {
+    vector<int> a;
+    vector<int> b;
+    a.push_back(1);
+    a.push_back(2);
+    a.push_back(3);
+    b = a;
+    a.push_back(4);
+    EXPECT_NE(a.size(), b.size());
+}
+
+TEST(vector, push_back_itself) {
+    vector<B> v;
+    v.push_back(42);
+    v.push_back(v.front());
+    v.push_back(v.front());
+    v.push_back(v.front());
+    for (size_t i = 0; i < 4; ++i) {
+        EXPECT_EQ(v[i].val, 42);
+    }
 }

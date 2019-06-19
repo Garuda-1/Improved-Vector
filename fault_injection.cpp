@@ -13,22 +13,22 @@ namespace
         using value_type = T;
 
         mmap_allocator() = default;
-        
+
         T* allocate(size_t n)
         {
-            void* ptr = mmap(nullptr, n, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE, -1, 0);
+            void* ptr = mmap(nullptr, n, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
             if (ptr == MAP_FAILED)
                 throw std::bad_alloc();
             return reinterpret_cast<T*>(ptr);
         }
-        
+
         void deallocate(void* p, std::size_t n)
         {
             int r = munmap(p, n);
             if (r != 0)
                 std::abort();
         }
-        
+
     };
 
     struct fault_injection_context
@@ -96,7 +96,7 @@ void fault_injection_point()
 
 void faulty_run(std::function<void ()> const& f)
 {
-#if 1
+#if 0
     f();
 #else
     assert(!context);
@@ -128,7 +128,7 @@ void faulty_run(std::function<void ()> const& f)
 }
 
 fault_injection_disable::fault_injection_disable()
-    : was_disabled(disabled)
+        : was_disabled(disabled)
 {
     disabled = true;
 }
@@ -175,9 +175,11 @@ void operator delete[](void* ptr) noexcept
 void operator delete(void* ptr, std::size_t) noexcept
 {
     free(ptr);
+//    operator delete(ptr);
 }
 
 void operator delete[](void* ptr, std::size_t) noexcept
 {
     free(ptr);
+//    operator delete(ptr);
 }
