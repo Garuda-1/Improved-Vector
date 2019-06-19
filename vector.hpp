@@ -15,13 +15,18 @@ struct vector {
     typedef std::reverse_iterator<vector_iterator<T>> reverse_iterator;
     typedef std::reverse_iterator<vector_const_iterator<T>> const_reverse_iterator;
 
-    std::variant<asp<T>, T> src_;
-
     vector() = default;
 
     vector(vector const& that) = default;
 
-    // TODO: InputIterator ctor
+    template<typename InputIterator>
+    vector(InputIterator first, InputIterator last) {
+        vector tmp;
+        for (auto it = first; it != last; ++it) {
+            tmp.push_back(*it);
+        }
+        swap(tmp);
+    }
 
     T& operator[](size_t i) {
         detach();
@@ -447,7 +452,58 @@ struct vector {
         }
     }
 
+    friend bool operator==(const vector& a, const vector& b) {
+        if (a.size() != b.size()) {
+            return false;
+        }
+        auto ita = a.begin();
+        auto itb = b.begin();
+        for (; ita != a.end(); ++ita, ++itb) {
+            if (*ita != *itb) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    friend bool operator!=(const vector& a, const vector& b) {
+        return !(a == b);
+    }
+
+    friend bool operator<(const vector& a, const vector& b) {
+        auto a_begin = a.begin();
+        auto b_begin = b.begin();
+
+        auto a_end = a.end();
+        auto b_end = b.end();
+
+        for (; (a_begin != a_end) && (b_begin != b_end); ++a_begin, ++b_begin) {
+            if (*a_begin < *b_begin) {
+                return true;
+            }
+            if (*b_begin < *a_begin) {
+                return false;
+            }
+        }
+
+        return (a_begin == a_end) && (b_begin != b_end);
+    }
+
+    friend bool operator>(const vector& a, const vector& b) {
+        return b < a;
+    }
+
+    friend bool operator<=(const vector& a, const vector& b) {
+        return !(b < a);
+    }
+
+    friend bool operator>=(const vector& a, const vector& b) {
+        return !(a < b);
+    }
+
 private:
+    std::variant<asp<T>, T> src_;
+
     enum status {
         EMPTY,
         SMALL,
@@ -491,5 +547,7 @@ void swap(vector<T>& a, vector<T>& b) {
         a.swap(b);
     }
 }
+
+
 
 #endif

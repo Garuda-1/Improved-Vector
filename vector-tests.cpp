@@ -9,7 +9,7 @@ static size_t limit() {
 TEST(vector, size) {
     typedef std::string T;
     vector<T> v;
-    EXPECT_TRUE(sizeof(v) <= limit<T>()) << sizeof(v) << " " << sizeof(v.src_) << " " << sizeof(T) << " " << sizeof(asp<T>);
+    EXPECT_TRUE(sizeof(v) <= limit<T>()) << sizeof(v) << " " << sizeof(T) << " " << sizeof(asp<T>);
 }
 
 TEST(vector, access) {
@@ -185,16 +185,27 @@ TEST(vector, insert) {
     vector<B> v;
     auto it1 = v.insert(v.begin(), B(42));
     EXPECT_EQ(it1->val, 42);
-    
+
     auto it2 = v.insert(v.end(), B(43));
     EXPECT_EQ(it2->val, 43);
-    
+
     auto it3 = v.insert(v.begin(), B(41));
     EXPECT_EQ(it3->val, 41);
-    
+
     EXPECT_EQ(v.size(), 3);
     EXPECT_EQ(v.end() - v.begin(), v.size());
     for (auto it = v.begin(); it != v.end(); ++it) {
         EXPECT_EQ(it->val, 41 + (it - v.begin()));
     }
+}
+
+TEST(vector, comp) {
+    vector<int> a;
+    vector<int> b;
+    EXPECT_TRUE(a == b);
+    EXPECT_FALSE(a != b);
+    EXPECT_TRUE(a <= b);
+    EXPECT_FALSE(a < b);
+    EXPECT_TRUE(a >= b);
+    EXPECT_FALSE(a > b);
 }
