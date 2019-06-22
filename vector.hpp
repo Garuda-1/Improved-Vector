@@ -28,6 +28,15 @@ struct vector {
         swap(tmp);
     }
 
+    template<typename InputIterator>
+    void assign(InputIterator first, InputIterator last) {
+        vector tmp;
+        for (auto it = first; it != last; ++it) {
+            tmp.push_back(*it);
+        }
+        swap(tmp);
+    }
+
     T& operator[](size_t i) {
         detach();
         if (get_status() == SMALL) {
@@ -252,12 +261,16 @@ struct vector {
     void clear() {
         detach();
         switch (get_status()) {
+            case EMPTY: {
+                return;
+            }
             case SMALL: {
                 src_.template emplace<0>();
                 return;
             }
             case ALLOCATED: {
                 std::get<0>(src_).reset();
+                return;
             }
         }
     }

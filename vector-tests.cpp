@@ -209,3 +209,11 @@ TEST(vector, comp) {
     EXPECT_TRUE(a >= b);
     EXPECT_FALSE(a > b);
 }
+
+TEST(vector, nikolya) {
+    vector<int> a;
+    a.reserve(10);
+    for (size_t i = 0; i < 10; ++i) {
+        a.insert(a.begin(), i);
+    }
+}
